@@ -119,7 +119,7 @@ func handleTarTypeBlockCharFifo(hdr *tar.Header, path string) error {
 		mode |= unix.S_IFIFO
 	}
 
-	return unix.Mknod(path, mode, int(unix.Mkdev(uint32(hdr.Devmajor), uint32(hdr.Devminor))))
+	return unix.Mknod(path, mode, unix.Mkdev(uint32(hdr.Devmajor), uint32(hdr.Devminor)))
 }
 
 func handleLChmod(hdr *tar.Header, path string, hdrInfo os.FileInfo) error {
@@ -200,19 +200,21 @@ func copyUpXAttrs(dst, src string) error {
 		if strings.HasPrefix(xattr, "trusted.") {
 			continue
 		}
-		data, err := sysx.LGetxattr(src, xattr)
-		if err != nil {
-			if err == unix.ENOTSUP || err == sysx.ENODATA {
-				continue
+		/*
+			data, err := sysx.LGetxattr(src, xattr)
+			if err != nil {
+				if err == unix.ENOTSUP || err == sysx.ENODATA {
+					continue
+				}
+				return errors.Wrapf(err, "failed to get xattr %q on %s", xattr, src)
 			}
-			return errors.Wrapf(err, "failed to get xattr %q on %s", xattr, src)
-		}
-		if err := unix.Lsetxattr(dst, xattr, data, unix.XATTR_CREATE); err != nil {
-			if err == unix.ENOTSUP || err == unix.ENODATA || err == unix.EEXIST {
-				continue
+			if err := unix.Lsetxattr(dst, xattr, data, unix.XATTR_CREATE); err != nil {
+				if err == unix.ENOTSUP || err == unix.ENODATA || err == unix.EEXIST {
+					continue
+				}
+				return errors.Wrapf(err, "failed to set xattr %q on %s", xattr, dst)
 			}
-			return errors.Wrapf(err, "failed to set xattr %q on %s", xattr, dst)
-		}
+		*/
 	}
 
 	return nil
